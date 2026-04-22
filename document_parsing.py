@@ -95,7 +95,7 @@ def build_chunks_with_metadata(elements, source_filename: str) -> list[dict]:
 
     for el in elements:
         # Track section title as we walk through elements
-        if isinstance(el, Title):
+        if isinstance(el, Title) and is_valid_title(str(el).strip()):
             current_section = str(el).strip()
 
         text = str(el).strip()
@@ -132,6 +132,15 @@ def clean_text(text: str) -> str:
     # Collapse whitespace
     text = " ".join(text.split())
     return text
+
+def is_valid_title(text: str) -> bool:
+    # Reject titles that are too long (likely a sentence, not a heading)
+    if len(text) > 60:
+        return False
+    # Reject titles that contain commas (likely a list or sentence fragment)
+    if text.count(",") >= 2:
+        return False
+    return True
 
 chunks = build_chunks_with_metadata(filtered, PDF_PATH)
 
