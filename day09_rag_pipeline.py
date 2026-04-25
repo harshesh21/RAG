@@ -20,12 +20,12 @@ from rank_bm25 import BM25Okapi
 from unstructured.partition.pdf import partition_pdf   # your Day 8 parser
 # If you saved your index/chunks from Day 8, skip Section 1 and load them.
 
-
+from build_index_pypdf import build_index_from_pdf   # your Day 8 parser (pypdf version)
 # ── 1. Rebuild Index from Day 8 (skip if you serialized the index) ────────────
 # Paste / import your Day 8 parsing + chunking function here.
 # Minimal version shown — swap in your actual pipeline.
 
-def build_index_from_pdf(pdf_path: str, chunk_size: int = 1024, overlap: int = 128):
+def build_index_from_pdf_linux(pdf_path: str, chunk_size: int = 1024, overlap: int = 128):
     """
     Re-runs your Day 8 pipeline and returns (chunks, metadata, faiss_index, bm25).
     chunks    — list of str
@@ -39,7 +39,8 @@ def build_index_from_pdf(pdf_path: str, chunk_size: int = 1024, overlap: int = 1
     import unicodedata
 
     print(f"[index] Parsing {pdf_path} ...")
-    elements = partition_pdf(pdf_path, strategy="fast")
+    elements = partition_pdf(pdf_path, strategy="auto")
+
 
     # Filter + normalize (your Day 8 logic)
     keep_types = {"Title", "NarrativeText", "ListItem", "Table"}
@@ -89,7 +90,11 @@ def build_index_from_pdf(pdf_path: str, chunk_size: int = 1024, overlap: int = 1
     print(f"[index] Embedding {len(chunks)} chunks ...")
     vecs = model.encode(chunks, batch_size=64, show_progress_bar=True, normalize_embeddings=True)
     vecs = np.array(vecs, dtype="float32")
-
+    print(f"[diag] len(cleaned): {len(cleaned)}")
+    print(f"[diag] len(chunks): {len(chunks)}")
+    print(f"[diag] vecs shape: {vecs.shape}")
+    if len(chunks) == 0:
+        raise ValueError("No chunks survived. Check parsing and filter steps above.")
     index = faiss.IndexFlatIP(vecs.shape[1])
     index.add(vecs)
 
@@ -289,7 +294,7 @@ def rag_answer(
 if __name__ == "__main__":
 
     # ── 6a. Build (or load) the index ────────────────────────────────────────
-    PDF_PATH = "document.pdf"    # ← your Day 8 PDF
+    PDF_PATH = "ragAws.pdf"    # ← your Day 8 PDF
 
     # Option A: rebuild fresh (slow, ~30s)
     chunks, metadata, faiss_index, bm25, embed_model = build_index_from_pdf(PDF_PATH)

@@ -12,10 +12,10 @@ Import your Day 9 module, or paste build_index_from_pdf / retrieve / call_bedroc
 import json
 import textwrap
 from day09_rag_pipeline import (
-    build_index_from_pdf,
     retrieve,
     call_bedrock,
 )
+from build_index_pypdf import build_index_from_pdf   # your Day 8 parser (pypdf version)
 
 PDF_PATH = "document.pdf"   # ← same whitepaper
 chunks, metadata, faiss_index, bm25, embed_model = build_index_from_pdf(PDF_PATH)
@@ -317,4 +317,14 @@ OBSERVATIONS:
 These become the fixed parameters for the 20-question eval CSV on Day 15.
 Locking them now means any regression in Phase 4 CI/CD is clearly attributable
 to a code change, not a config drift.
+
+
+parser:         pypdf
+chunk_size:     1024
+overlap:        256   (bump from 128 as noted after Day 9)
+k:              8
+alpha:          0.5
+context_order:  score_asc
+prompt_config:  partial_answer + injection_hardened combined
+temperature:    0.0
 """
